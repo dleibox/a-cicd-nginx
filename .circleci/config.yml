@@ -45,6 +45,7 @@ jobs:
       # - run: yarn test
 
       # run deploy!
+      # use ~/.ssh/id_rsa
       - add_ssh_keys
 
       # - run:
