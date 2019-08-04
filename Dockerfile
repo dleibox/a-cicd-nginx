@@ -1,4 +1,4 @@
-FROM dleibox/a-nginx
+FROM dleibox/a-nginx:1.17.1-alpine
 
 # Add Maintainer Info
 MAINTAINER Daniel Lei <dleibox@gmail.com>
