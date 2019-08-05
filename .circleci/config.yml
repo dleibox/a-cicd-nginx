@@ -47,13 +47,14 @@ jobs:
       - add_ssh_keys
 
       - run:
-          name: Stop All Containers
+          name: Stop All Containers & Create Docker Network
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_APP_CTNR}
               docker network rm ${MY_ENV_NETWORK}
               docker network prune
+              docker network create ${MY_ENV_NETWORK}
             EOF
       - run:
           name: Start Git Container
@@ -77,7 +78,6 @@ jobs:
               -r ./git.dlei.ca.conf root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
             # docker process
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker network create ${MY_ENV_NETWORK}
               cd ~/_daniel/${MY_ENV_APP} 
               docker stop ${MY_ENV_APP_CTNR} 
               docker rm ${MY_ENV_APP_CTNR}
