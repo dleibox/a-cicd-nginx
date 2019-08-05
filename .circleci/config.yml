@@ -71,15 +71,12 @@ jobs:
               mkdir -p /root/_daniel/${MY_ENV_APP}
             # copy files to prod server
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root \
-              "echo 'upstream docker-git {
-                server ${MY_ENV_GIT_CTNR}:8080; # container name
-            }
-            server {
+              "echo 'server {
                 listen 80;
                 listen [::]:80;
                 server_name git.dlei.ca;
                 location / {
-                    proxy_pass http://docker-git;
+                    proxy_pass ${MY_ENV_GIT_CTNR}:8080;
                     proxy_redirect off;
                     proxy_set_header Host \$host;
                     proxy_set_header X-Real-IP \$remote_addr;
