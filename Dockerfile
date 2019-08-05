@@ -7,9 +7,9 @@ MAINTAINER Daniel Lei <dleibox@gmail.com>
 VOLUME /tmp
 
 # Go to work directory
-# WORKDIR /home
+# WORKDIR /etc/nginx
 
-EXPOSE 80
+EXPOSE 80 443
 
 # # The application's jar file
 # ARG JAR_FILE=./target/a-springboot-service-0.0.1-SNAPSHOT.jar
