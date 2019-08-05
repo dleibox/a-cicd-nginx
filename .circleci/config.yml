@@ -47,13 +47,20 @@ jobs:
       - add_ssh_keys
 
       - run:
-          name: Stop Git Container
+          name: Stop All Containers
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_APP_CTNR}
               docker network rm ${MY_ENV_NETWORK}
               docker network prune
+            EOF
+      - run:
+          name: Start Git Container
+          command: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
+              docker start ${MY_ENV_GIT_CTNR}
+              docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
             EOF
       - deploy:
           name: Deploy Docker Over SSH
@@ -79,13 +86,6 @@ jobs:
               docker run -p 80:80 --network=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
             EOF
             # !!!
-      - run:
-          name: Start Git Container
-          command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker start ${MY_ENV_GIT_CTNR}
-              docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-            EOF
       # - run:
       #     name: Configure and restart nginx
       #     command: |
