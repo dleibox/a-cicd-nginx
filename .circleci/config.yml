@@ -94,7 +94,7 @@ jobs:
           name: Start Git Container
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker start gitbucket/gitbucket
+              docker start git
             EOF
       # - run:
       #     name: Configure and restart nginx
