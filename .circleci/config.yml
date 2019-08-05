@@ -76,7 +76,7 @@ jobs:
               docker rm ${MY_ENV_APP_CTNR}
               docker rmi ${MY_ENV_APP} 
               docker build -t ${MY_ENV_APP} .
-              docker run -p 80:80 --net=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
+              docker run -p 80:80 --network=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
             EOF
             # !!!
       - run:
