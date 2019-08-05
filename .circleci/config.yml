@@ -66,6 +66,14 @@ jobs:
       #         service a-svc restart"
       #       # process ID in /var/run/a-svc/a-svc.pid
       #       # output cat /var/log/a-svc.log
+      - run:
+          name: Stop Git Container
+          command: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
+              docker network disconnect a-network git
+              docker network disconnect a-network ${MY_ENV_APP_CTNR}
+              docker network rm a-network
+            EOF
       - deploy:
           name: Deploy Docker Over SSH
           command: |
@@ -95,6 +103,7 @@ jobs:
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
               docker start git
+              docker network connect a-network git
             EOF
       # - run:
       #     name: Configure and restart nginx
