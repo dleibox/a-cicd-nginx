@@ -24,6 +24,9 @@ jobs:
           name: "Setup custom environment variables"
           command: |
             echo 'export MY_ENV_VAR="A CICD NGINX"' >> $BASH_ENV # Redirect MY_ENV_VAR into $BASH_ENV
+            echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
             echo 'export MY_ENV_APP="a-cicd-nginx"' >> $BASH_ENV
             echo 'export MY_ENV_APP_CTNR="a-cicd-nginx-container"' >> $BASH_ENV
 
@@ -36,11 +39,6 @@ jobs:
 
       - run: yarn install
 
-      # - save_cache:
-      #     paths:
-      #       - node_modules
-      #     key: v1-dependencies-{{ checksum "package.json" }}
-
       # # run tests!
       # - run: yarn test
 
@@ -48,31 +46,13 @@ jobs:
       # use ~/.ssh/id_rsa
       - add_ssh_keys
 
-      # - run:
-      #     name: Make remote server a known host
-      #     command: ssh-keyscan git.dlei.ca >> ~/.ssh/known_hosts
-
-      # - deploy:
-      #     name: Deploy Over SSH
-      #     command: |
-      #       # copy jar to prod server
-      #       scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-      #         -r ./target/${MY_ENV_APP}-0.0.1-SNAPSHOT.jar root@git.dlei.ca:/root/_daniel/app.jar
-      #       # start spring boot
-      #       # run as an app: java -jar ~/_daniel/app.jar > /var/log/${MY_ENV_APP}.log
-      #       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l root git.dlei.ca \
-      #         "kill \$(lsof -t -i:8080); \
-      #         sudo ln -sf ~/_daniel/app.jar /etc/init.d/a-svc; \
-      #         service a-svc restart"
-      #       # process ID in /var/run/a-svc/a-svc.pid
-      #       # output cat /var/log/a-svc.log
       - run:
           name: Stop Git Container
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker network disconnect a-network git
-              docker network disconnect a-network ${MY_ENV_APP_CTNR}
-              docker network rm a-network
+              docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
+              docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_APP_CTNR}
+              docker network rm ${MY_ENV_NETWORK}
               docker network prune
             EOF
       - deploy:
@@ -90,21 +70,21 @@ jobs:
               -r ./git.dlei.ca.conf root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
             # docker process
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker network create a-network
+              docker network create ${MY_ENV_NETWORK}
               cd ~/_daniel/${MY_ENV_APP} 
               docker stop ${MY_ENV_APP_CTNR} 
               docker rm ${MY_ENV_APP_CTNR}
               docker rmi ${MY_ENV_APP} 
               docker build -t ${MY_ENV_APP} .
-              docker run -p 80:80 --net=a-network --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
+              docker run -p 80:80 --net=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
             EOF
             # !!!
       - run:
           name: Start Git Container
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              docker start git
-              docker network connect a-network git
+              docker start ${MY_ENV_GIT_CTNR}
+              docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
             EOF
       # - run:
       #     name: Configure and restart nginx
