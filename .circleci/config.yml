@@ -70,18 +70,38 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root \
               mkdir -p /root/_daniel/${MY_ENV_APP}
             # copy files to prod server
-            # scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            #   -r ./docker root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root \
+              "echo 'upstream docker-git {
+                # server git.dlei.ca:8080;
+                # server 172.18.0.3:8080; # docker network inspect a-network
+                server git-c:8080; # container name
+            }
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name git.dlei.ca;
+                location / {
+                    proxy_pass http://docker-git;
+                    # proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    # proxy_set_header X-Forwarded-Proto \$scheme;
+                    # proxy_set_header X-Forwarded-Port \$server_port;
+                    proxy_redirect off;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Host $server_name;
+                }
+            }' > /root/_daniel/${MY_ENV_APP}/git.dlei.ca.conf"
             scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
               -r ./Dockerfile root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              -r ./git.dlei.ca.conf root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
+            # scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            #   -r ./git.dlei.ca.conf root@git.dlei.ca:/root/_daniel/${MY_ENV_APP}
             # docker process
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null git.dlei.ca -l root <<EOF
-              cd ~/_daniel/${MY_ENV_APP} 
               docker stop ${MY_ENV_APP_CTNR} 
               docker rm ${MY_ENV_APP_CTNR}
               docker rmi ${MY_ENV_APP} 
+              cd ~/_daniel/${MY_ENV_APP} 
               docker build -t ${MY_ENV_APP} .
               docker run -p 80:80 --network=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
             EOF
