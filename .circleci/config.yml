@@ -73,6 +73,7 @@ jobs:
               docker network disconnect a-network git
               docker network disconnect a-network ${MY_ENV_APP_CTNR}
               docker network rm a-network
+              docker network rm prune
             EOF
       - deploy:
           name: Deploy Docker Over SSH
