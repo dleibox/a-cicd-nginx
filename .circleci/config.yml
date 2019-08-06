@@ -24,7 +24,7 @@ jobs:
           name: "Setup custom environment variables"
           command: |
             echo 'export MY_ENV_VAR="A CICD NGINX"' >> $BASH_ENV # Redirect MY_ENV_VAR into $BASH_ENV
-            echo 'export MY_REMOTE_IP="149.248.52.58"' >> $BASH_ENV
+            echo 'export REMOTE_SERVER="149.248.52.58"' >> $BASH_ENV
             echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
             echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
@@ -50,7 +50,7 @@ jobs:
       - run:
           name: Stop All Containers & Create Docker Network
           command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
               docker stop ${MY_ENV_APP_CTNR} 
               docker rm ${MY_ENV_APP_CTNR}
               docker rmi ${MY_ENV_APP} 
@@ -64,11 +64,12 @@ jobs:
       - run:
           name: Start Containers
           command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
+              docker stop ${MY_ENV_GIT_CTNR}
+              docker rm ${MY_ENV_GIT_CTNR}
+              docker run -d --name ${MY_ENV_GIT_CTNR} --network=a-network -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-            EOF
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
               docker start a-springboot-service-container
               docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
             EOF
@@ -76,10 +77,10 @@ jobs:
           name: Deploy NGINX Docker Over SSH
           command: |
             # create directories
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root \
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               mkdir -p /root/_daniel/${MY_ENV_APP}
             # copy files to prod server
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root \
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'server {
                 listen 80;
                 listen [::]:80;
@@ -93,7 +94,7 @@ jobs:
                     proxy_set_header X-Forwarded-Host \$server_name;
                 }
             }' > /root/_daniel/${MY_ENV_APP}/git.dlei.ca.conf"
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root \
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'server {
                 listen 80;
                 listen [::]:80;
@@ -108,9 +109,9 @@ jobs:
                 }
             }' > /root/_daniel/${MY_ENV_APP}/api2.dlei.ca.conf"
             scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              -r ./Dockerfile root@${MY_REMOTE_IP}:/root/_daniel/${MY_ENV_APP}
+              -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_ENV_APP}
             # docker process
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
               cd ~/_daniel/${MY_ENV_APP} 
               docker build -t ${MY_ENV_APP} .
               docker run -p 80:80 --network=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
