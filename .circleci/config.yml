@@ -67,8 +67,6 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
               docker start ${MY_ENV_GIT_CTNR}
               docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-            EOF
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
               docker start a-springboot-service-container
               docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
             EOF
