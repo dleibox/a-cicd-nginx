@@ -56,6 +56,7 @@ jobs:
               docker rmi ${MY_ENV_APP} 
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_APP_CTNR}
+              docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-container
               docker network rm ${MY_ENV_NETWORK}
               docker network prune -f
               docker network create ${MY_ENV_NETWORK}
