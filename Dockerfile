@@ -11,6 +11,6 @@ VOLUME /tmp
 
 EXPOSE 80 443
 
-ADD ./*.conf /etc/nginx/conf.d
+ADD ./*.conf /etc/nginx/conf.d/
 
 CMD ["nginx", "-g", "daemon off;"]
