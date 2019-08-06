@@ -29,7 +29,7 @@ jobs:
             echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
             echo 'export MY_ENV_APP="a-cicd-nginx"' >> $BASH_ENV
-            echo 'export MY_ENV_APP_CTNR="a-cicd-nginx-container"' >> $BASH_ENV
+            echo 'export MY_ENV_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
 
       # Download and cache dependencies
       # - restore_cache:
@@ -61,11 +61,15 @@ jobs:
               docker network create ${MY_ENV_NETWORK}
             EOF
       - run:
-          name: Start Git Container
+          name: Start Containers
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
               docker start ${MY_ENV_GIT_CTNR}
               docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
+            EOF
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root <<EOF
+              docker start a-springboot-service-container
+              docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
             EOF
       - deploy:
           name: Deploy NGINX Docker Over SSH
@@ -88,6 +92,20 @@ jobs:
                     proxy_set_header X-Forwarded-Host \$server_name;
                 }
             }' > /root/_daniel/${MY_ENV_APP}/git.dlei.ca.conf"
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${MY_REMOTE_IP} -l root \
+              "echo 'server {
+                listen 80;
+                listen [::]:80;
+                server_name api2.dlei.ca;
+                location / {
+                    proxy_pass http://a-springboot-service-container:8080;
+                    proxy_redirect off;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Host \$server_name;
+                }
+            }' > /root/_daniel/${MY_ENV_APP}/api2.dlei.ca.conf"
             scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
               -r ./Dockerfile root@${MY_REMOTE_IP}:/root/_daniel/${MY_ENV_APP}
             # docker process
