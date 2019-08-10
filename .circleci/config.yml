@@ -68,7 +68,7 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
               docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
-              docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
+              # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               # docker start a-springboot-service-container
               # docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
             EOF
