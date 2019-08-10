@@ -51,21 +51,21 @@ jobs:
           name: Stop All Containers & Create Docker Network
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
-              docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-              docker network disconnect ${MY_ENV_NETWORK} ${MY_WEB_APP_CTNR}
-              docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-c
+              # docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
+              # docker network disconnect ${MY_ENV_NETWORK} ${MY_WEB_APP_CTNR}
+              # docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-c
+              docker rm -f ${MY_WEB_APP_CTNR}
+              docker rmi ${MY_WEB_APP}
+              docker rm -f ${MY_ENV_GIT_CTNR}
+              docker rmi ${MY_ENV_GIT}
               docker network rm ${MY_ENV_NETWORK}
               docker network prune -f
               docker network create ${MY_ENV_NETWORK}
-              docker rm -f ${MY_WEB_APP_CTNR}
-              docker rmi ${MY_WEB_APP} 
             EOF
       - run:
           name: Start Containers
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
-              docker stop ${MY_ENV_GIT_CTNR}
-              docker rm ${MY_ENV_GIT_CTNR}
               docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
