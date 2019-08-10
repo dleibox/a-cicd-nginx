@@ -51,15 +51,14 @@ jobs:
           name: Stop All Containers & Create Docker Network
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
-              docker stop ${MY_WEB_APP_CTNR} 
-              docker rm ${MY_WEB_APP_CTNR}
-              docker rmi ${MY_WEB_APP} 
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker network disconnect ${MY_ENV_NETWORK} ${MY_WEB_APP_CTNR}
               # docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-container
               docker network rm ${MY_ENV_NETWORK}
               docker network prune -f
               docker network create ${MY_ENV_NETWORK}
+              docker rm -f ${MY_WEB_APP_CTNR}
+              docker rmi ${MY_WEB_APP} 
             EOF
       - run:
           name: Start Containers
