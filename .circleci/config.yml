@@ -28,8 +28,8 @@ jobs:
             echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
             echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
-            echo 'export MY_ENV_APP="a-cicd-nginx"' >> $BASH_ENV
-            echo 'export MY_ENV_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
+            echo 'export MY_WEB_APP="a-cicd-nginx"' >> $BASH_ENV
+            echo 'export MY_WEB_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
 
       # Download and cache dependencies
       # - restore_cache:
@@ -51,12 +51,12 @@ jobs:
           name: Stop All Containers & Create Docker Network
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
-              docker stop ${MY_ENV_APP_CTNR} 
-              docker rm ${MY_ENV_APP_CTNR}
-              docker rmi ${MY_ENV_APP} 
+              docker stop ${MY_WEB_APP_CTNR} 
+              docker rm ${MY_WEB_APP_CTNR}
+              docker rmi ${MY_WEB_APP} 
               docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-              docker network disconnect ${MY_ENV_NETWORK} ${MY_ENV_APP_CTNR}
-              docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-container
+              docker network disconnect ${MY_ENV_NETWORK} ${MY_WEB_APP_CTNR}
+              # docker network disconnect ${MY_ENV_NETWORK} a-springboot-service-container
               docker network rm ${MY_ENV_NETWORK}
               docker network prune -f
               docker network create ${MY_ENV_NETWORK}
@@ -70,15 +70,15 @@ jobs:
               docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
-              docker start a-springboot-service-container
-              docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
+              # docker start a-springboot-service-container
+              # docker network connect ${MY_ENV_NETWORK} a-springboot-service-container
             EOF
       - deploy:
           name: Deploy NGINX Docker Over SSH
           command: |
             # create directories
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
-              mkdir -p /root/_daniel/${MY_ENV_APP}
+              mkdir -p /root/_daniel/${MY_WEB_APP}
             # copy files to prod server
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'server {
@@ -99,7 +99,7 @@ jobs:
                     client_max_body_size    500m; # Big number is we can post big commits.
                     client_body_buffer_size 128k;
                 }
-            }' > /root/_daniel/${MY_ENV_APP}/git.dlei.ca.conf"
+            }' > /root/_daniel/${MY_WEB_APP}/git.dlei.ca.conf"
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'server {
                 listen 80;
@@ -113,13 +113,13 @@ jobs:
                     proxy_set_header  X-Forwarded-For \$proxy_add_x_forwarded_for;
                     proxy_set_header  X-Forwarded-Host \$server_name;
                 }
-            }' > /root/_daniel/${MY_ENV_APP}/api2.dlei.ca.conf"
+            }' > /root/_daniel/${MY_WEB_APP}/api2.dlei.ca.conf"
             scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_ENV_APP}
+              -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_WEB_APP}
             # docker process
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
-              cd ~/_daniel/${MY_ENV_APP} 
-              docker build -t ${MY_ENV_APP} .
-              docker run -p 80:80 -p 443:443 --network=${MY_ENV_NETWORK} --name ${MY_ENV_APP_CTNR} -d ${MY_ENV_APP} 
+              cd ~/_daniel/${MY_WEB_APP} 
+              docker build -t ${MY_WEB_APP} .
+              docker run -p 80:80 -p 443:443 --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} -d ${MY_WEB_APP} 
             EOF
             # !!!
