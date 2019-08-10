@@ -58,6 +58,8 @@ jobs:
               docker rmi ${MY_WEB_APP}
               docker rm -f ${MY_ENV_GIT_CTNR}
               docker rmi ${MY_ENV_GIT}
+              docker rm -f a-springboot-service-c
+              docker rmi a-springboot-service
               docker network rm ${MY_ENV_NETWORK}
               docker network prune -f
               docker network create ${MY_ENV_NETWORK}
