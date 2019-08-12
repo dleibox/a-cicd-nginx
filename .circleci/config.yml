@@ -26,10 +26,15 @@ jobs:
             echo 'export MY_ENV_VAR="A CICD NGINX"' >> $BASH_ENV # Redirect MY_ENV_VAR into $BASH_ENV
             echo 'export REMOTE_SERVER="149.248.52.58"' >> $BASH_ENV
             echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
-            echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT="gitbucket/gitbucket"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT_VOL="git-v"' >> $BASH_ENV
+            echo 'export MY_ENV_NPM="verdaccio/verdaccio"' >> $BASH_ENV
+            echo 'export MY_ENV_NPM_CTNR="verdaccio-c"' >> $BASH_ENV
+            echo 'export MY_ENV_NPM_VOL="verdaccio-v"' >> $BASH_ENV
             echo 'export MY_WEB_APP="a-cicd-nginx"' >> $BASH_ENV
             echo 'export MY_WEB_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
+            echo 'export MY_WEB_APP_VOL="a-v"' >> $BASH_ENV
 
       # Download and cache dependencies
       # - restore_cache:
@@ -53,16 +58,25 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
               docker rm -f ${MY_ENV_GIT_CTNR}
               docker rmi ${MY_ENV_GIT}
-              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
+              # docker volume create ${MY_ENV_GIT_VOL} // because auto create
+              docker run -d --name ${MY_ENV_GIT_CTNR} --restart always --network=${MY_ENV_NETWORK} -v ${MY_ENV_GIT_VOL}:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
+              docker rm -f ${MY_ENV_NPM_CTNR}
+              docker rmi ${MY_ENV_NPM}
+              # V_PATH=~/_daniel/verdaccio
+              # docker volume create ${MY_ENV_NPM_VOL}
+              docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --restart always --network=${MY_ENV_NETWORK} \
+                -v ${MY_ENV_NPM_VOL}:/verdaccio \
+                ${MY_ENV_NPM}
+              docker start ${MY_ENV_NPM_CTNR}
             EOF
-      - deploy:
-          name: Deploy NGINX Docker Over SSH
-          command: |
             # create directories
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               mkdir -p /root/_daniel/${MY_WEB_APP}
+      - deploy:
+          name: Configure GIT Docker Over SSH
+          command: |
             # copy files to prod server
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'server {
@@ -84,6 +98,29 @@ jobs:
                     client_body_buffer_size 128k;
                 }
             }' > /root/_daniel/${MY_WEB_APP}/git.dlei.ca.conf"
+      - deploy:
+          name: Configure NPM Docker Over SSH
+          command: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
+              "echo 'server {
+                listen 80;
+                listen [::]:80;
+                server_name npm.dlei.ca;
+                location / {
+                    proxy_pass              http://${MY_ENV_NPM_CTNR}:4873;
+                    proxy_redirect          off;
+                    proxy_set_header        Host \$host;
+                    proxy_set_header        X-Real-IP \$remote_addr;
+                    proxy_set_header        X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header        X-Forwarded-Host \$server_name;
+                    proxy_connect_timeout   150;
+                    proxy_send_timeout      100;
+                    proxy_read_timeout      100;
+                    proxy_buffers           4 32k;
+                    client_max_body_size    500m; # Big number is we can post big commits.
+                    client_body_buffer_size 128k;
+                }
+            }' > /root/_daniel/${MY_WEB_APP}/npm.dlei.ca.conf"
             # ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
             #   "echo 'server {
             #     listen 80;
@@ -101,6 +138,9 @@ jobs:
 
             # scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             #   -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_WEB_APP}
+      - deploy:
+          name: Deploy NGINX Docker Over SSH
+          command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               "echo 'FROM nginx:1.17.2-alpine
 
@@ -108,7 +148,7 @@ jobs:
             MAINTAINER Daniel Lei <dleibox@gmail.com>
 
             # Add a volume pointing to /tmp
-            VOLUME /tmp
+            # VOLUME /tmp
 
             # Go to work directory
             # WORKDIR /etc/nginx
@@ -128,6 +168,11 @@ jobs:
               docker rm -f ${MY_WEB_APP_CTNR}
               docker rmi ${MY_WEB_APP}
               docker build -t ${MY_WEB_APP} .
-              docker run -d -p 80:80 -p 443:443 --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} 
+              docker run -d -p 80:80 -p 443:443 \
+                -v /root/_daniel/docker-data/${MY_WEB_APP}:/etc/nginx/conf.d \
+                -v /root/_daniel/docker-data/${MY_WEB_APP}-www:/usr/share/nginx/html \
+                --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} --restart always \
+                ${MY_WEB_APP}
             EOF
+            # docker run -d -p 80:80 -p 443:443 -v ${MY_WEB_APP_VOL}:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} --restart always ${MY_WEB_APP}
             # !!!
