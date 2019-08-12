@@ -98,8 +98,27 @@ jobs:
             #         proxy_set_header  X-Forwarded-Host \$server_name;
             #     }
             # }' > /root/_daniel/${MY_WEB_APP}/api2.dlei.ca.conf"
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_WEB_APP}
+
+            # scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            #   -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_WEB_APP}
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
+              "echo 'FROM nginx:1.17.2-alpine
+
+            # Add Maintainer Info
+            MAINTAINER Daniel Lei <dleibox@gmail.com>
+
+            # Add a volume pointing to /tmp
+            VOLUME /tmp
+
+            # Go to work directory
+            # WORKDIR /etc/nginx
+
+            EXPOSE 80 443
+
+            ADD ./*.conf /etc/nginx/conf.d/
+
+            CMD [\"nginx\", \"-g\", \"daemon off;\"]
+            ' > /root/_daniel/${MY_WEB_APP}/Dockerfile"
       - run:
           name: Run NGINX Docker Over SSH
           command: |
