@@ -60,7 +60,11 @@ jobs:
               # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker rm -f ${MY_ENV_NPM_CTNR}
               docker rmi ${MY_ENV_NPM}
-              docker run -d -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} verdaccio/verdaccio
+              V_PATH=~/_daniel/verdaccio; docker run -d -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
+                -v $V_PATH/conf:/verdaccio/conf \
+                -v $V_PATH/storage:/verdaccio/storage \
+                -v $V_PATH/plugins:/verdaccio/plugins \
+                verdaccio/verdaccio
               docker start ${MY_ENV_NPM_CTNR}
             EOF
             # create directories
