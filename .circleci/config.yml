@@ -61,6 +61,7 @@ jobs:
               docker rm -f ${MY_ENV_NPM_CTNR}
               docker rmi ${MY_ENV_NPM}
               V_PATH=~/_daniel/verdaccio
+              echo $V_PATH
               docker run -d -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
                 -v $V_PATH/conf:/verdaccio/conf \
                 -v $V_PATH/storage:/verdaccio/storage \
