@@ -62,8 +62,8 @@ jobs:
               docker rmi ${MY_ENV_NPM}
               V_PATH=~/_daniel/verdaccio
               echo $V_PATH
-              docker run -d -it -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v a-volume:/verdaccio \
+              docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
+                -v a-volume/v:/verdaccio \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
