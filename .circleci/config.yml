@@ -26,7 +26,7 @@ jobs:
             echo 'export MY_ENV_VAR="A CICD NGINX"' >> $BASH_ENV # Redirect MY_ENV_VAR into $BASH_ENV
             echo 'export REMOTE_SERVER="149.248.52.58"' >> $BASH_ENV
             echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
-            echo 'export MY_ENV_GIT="git"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT="gitbucket/gitbucket"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
             echo 'export MY_ENV_NPM="verdaccio/verdaccio"' >> $BASH_ENV
             echo 'export MY_ENV_NPM_CTNR="verdaccio-c"' >> $BASH_ENV
@@ -66,7 +66,7 @@ jobs:
                 -v ~/_daniel/verdaccio/conf:/verdaccio/conf \
                 -v ~/_daniel/verdaccio/storage:/verdaccio/storage \
                 -v ~/_daniel/verdaccio/plugins:/verdaccio/plugins \
-                verdaccio/verdaccio
+                ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
             # create directories
