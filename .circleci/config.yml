@@ -63,7 +63,7 @@ jobs:
               V_PATH=~/_daniel/verdaccio
               echo $V_PATH
               docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v a-volume/v:/verdaccio \
+                -v a-volume:/verdaccio \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
