@@ -63,8 +63,6 @@ jobs:
               V_PATH=~/_daniel/verdaccio
               echo $V_PATH
               docker run -d -it -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v ~/_daniel/verdaccio/storage:/verdaccio/storage \
-                -v ~/_daniel/verdaccio/plugins:/verdaccio/plugins \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
