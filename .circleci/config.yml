@@ -63,7 +63,7 @@ jobs:
               V_PATH=~/_daniel/verdaccio
               echo $V_PATH
               docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v a-volume:/verdaccio/ \
+                -v a-volume:/verdaccio \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
@@ -167,6 +167,6 @@ jobs:
               docker rm -f ${MY_WEB_APP_CTNR}
               docker rmi ${MY_WEB_APP}
               docker build -t ${MY_WEB_APP} .
-              docker run -d -p 80:80 -p 443:443 --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} 
+              docker run -d -p 80:80 -p 443:443 -v a-volume:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} 
             EOF
             # !!!
