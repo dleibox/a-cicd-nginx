@@ -58,7 +58,7 @@ jobs:
               docker rm -f ${MY_ENV_GIT_CTNR}
               docker rmi ${MY_ENV_GIT}
               docker volume create ${MY_ENV_GIT_VOL}
-              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ${MY_ENV_GIT_VOL}:/gitbucket gitbucket/gitbucket
+              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/daniel/gitbucket:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker rm -f ${MY_ENV_NPM_CTNR}
