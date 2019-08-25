@@ -63,13 +63,12 @@ jobs:
               # V_PATH=~/_daniel/verdaccio
               echo $V_PATH
               docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v ~/_daniel/verdaccio:/verdaccio \
+                -v ~/_daniel/verdaccio/conf:/verdaccio/conf \
+                -v ~/_daniel/verdaccio/storage:/verdaccio/storage \
+                -v ~/_daniel/verdaccio/plugins:/verdaccio/plugins \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
-                # -v ~/_daniel/verdaccio/conf:/verdaccio/conf \
-                # -v ~/_daniel/verdaccio/storage:/verdaccio/storage \
-                # -v ~/_daniel/verdaccio/plugins:/verdaccio/plugins \
             # create directories
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
               mkdir -p /root/_daniel/${MY_WEB_APP}
