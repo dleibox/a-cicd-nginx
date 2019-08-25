@@ -28,8 +28,10 @@ jobs:
             echo 'export MY_ENV_NETWORK="a-network"' >> $BASH_ENV
             echo 'export MY_ENV_GIT="gitbucket/gitbucket"' >> $BASH_ENV
             echo 'export MY_ENV_GIT_CTNR="git-c"' >> $BASH_ENV
+            echo 'export MY_ENV_GIT_VOL="git-v"' >> $BASH_ENV
             echo 'export MY_ENV_NPM="verdaccio/verdaccio"' >> $BASH_ENV
             echo 'export MY_ENV_NPM_CTNR="verdaccio-c"' >> $BASH_ENV
+            echo 'export MY_ENV_NPM_VOL="verdaccio-v"' >> $BASH_ENV
             echo 'export MY_WEB_APP="a-cicd-nginx"' >> $BASH_ENV
             echo 'export MY_WEB_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
 
@@ -55,17 +57,16 @@ jobs:
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root <<EOF
               docker rm -f ${MY_ENV_GIT_CTNR}
               docker rmi ${MY_ENV_GIT}
-              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ~/_daniel/gitbucket:/gitbucket gitbucket/gitbucket
+              docker volume create ${MY_ENV_GIT_VOL}
+              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ${MY_ENV_GIT_VOL}:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker rm -f ${MY_ENV_NPM_CTNR}
               docker rmi ${MY_ENV_NPM}
               # V_PATH=~/_daniel/verdaccio
-              echo $V_PATH
+              docker volume create ${MY_ENV_NPM_VOL}
               docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
-                -v ~/_daniel/verdaccio/conf:/verdaccio/conf \
-                -v ~/_daniel/verdaccio/storage:/verdaccio/storage \
-                -v ~/_daniel/verdaccio/plugins:/verdaccio/plugins \
+                -v ${MY_ENV_NPM_VOL}:/verdaccio \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
             EOF
