@@ -168,7 +168,7 @@ jobs:
               docker rm -f ${MY_WEB_APP_CTNR}
               docker rmi ${MY_WEB_APP}
               docker build -t ${MY_WEB_APP} .
-              docker run -d -p 80:80 -p 443:443 -v /root/_daniel/docker-volumes/${MY_WEB_APP}:/etc/nginx/conf.d --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} --restart always
+              docker run -d -p 80:80 -p 443:443 -v /root/_daniel/docker-volumes/${MY_WEB_APP}:/etc/nginx/conf.d --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} --restart always ${MY_WEB_APP}
             EOF
-            # docker run -d -p 80:80 -p 443:443 -v ${MY_WEB_APP_VOL}:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} --restart always
+            # docker run -d -p 80:80 -p 443:443 -v ${MY_WEB_APP_VOL}:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} --restart always ${MY_WEB_APP}
             # !!!
