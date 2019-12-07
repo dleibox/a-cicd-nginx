@@ -59,14 +59,14 @@ jobs:
               docker rm -f ${MY_ENV_GIT_CTNR}
               docker rmi ${MY_ENV_GIT}
               # docker volume create ${MY_ENV_GIT_VOL} // because auto create
-              docker run -d --name ${MY_ENV_GIT_CTNR} --network=${MY_ENV_NETWORK} -v ${MY_ENV_GIT_VOL}:/gitbucket gitbucket/gitbucket
+              docker run -d --name ${MY_ENV_GIT_CTNR} --restart always --network=${MY_ENV_NETWORK} -v ${MY_ENV_GIT_VOL}:/gitbucket gitbucket/gitbucket
               docker start ${MY_ENV_GIT_CTNR}
               # docker network connect ${MY_ENV_NETWORK} ${MY_ENV_GIT_CTNR}
               docker rm -f ${MY_ENV_NPM_CTNR}
               docker rmi ${MY_ENV_NPM}
               # V_PATH=~/_daniel/verdaccio
               # docker volume create ${MY_ENV_NPM_VOL}
-              docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --network=${MY_ENV_NETWORK} \
+              docker run -d -i -p 4873:4873 --name ${MY_ENV_NPM_CTNR} --restart always --network=${MY_ENV_NETWORK} \
                 -v ${MY_ENV_NPM_VOL}:/verdaccio \
                 ${MY_ENV_NPM}
               docker start ${MY_ENV_NPM_CTNR}
@@ -148,7 +148,7 @@ jobs:
             MAINTAINER Daniel Lei <dleibox@gmail.com>
 
             # Add a volume pointing to /tmp
-            VOLUME /tmp
+            # VOLUME /tmp
 
             # Go to work directory
             # WORKDIR /etc/nginx
@@ -168,6 +168,7 @@ jobs:
               docker rm -f ${MY_WEB_APP_CTNR}
               docker rmi ${MY_WEB_APP}
               docker build -t ${MY_WEB_APP} .
-              docker run -d -p 80:80 -p 443:443 -v ${MY_WEB_APP_VOL}:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} 
+              docker run -d -p 80:80 -p 443:443 -v /root/_daniel/docker-volumes/${MY_WEB_APP}:/etc/nginx/conf.d --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} --restart always
             EOF
+            # docker run -d -p 80:80 -p 443:443 -v ${MY_WEB_APP_VOL}:/tmp --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} ${MY_WEB_APP} --restart always
             # !!!
