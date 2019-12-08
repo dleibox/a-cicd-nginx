@@ -35,6 +35,8 @@ jobs:
             echo 'export MY_WEB_APP="a-cicd-nginx"' >> $BASH_ENV
             echo 'export MY_WEB_APP_CTNR="a-cicd-nginx-c"' >> $BASH_ENV
             echo 'export MY_WEB_APP_VOL="a-v"' >> $BASH_ENV
+            echo 'export MY_WEB_APP_CONF="a-nginx-conf"' >> $BASH_ENV
+            echo 'export MY_WEB_APP_DATA="a-nginx-data"' >> $BASH_ENV
 
       # Download and cache dependencies
       # - restore_cache:
@@ -169,8 +171,8 @@ jobs:
               docker rmi ${MY_WEB_APP}
               docker build -t ${MY_WEB_APP} .
               docker run -d -p 80:80 -p 443:443 \
-                -v /root/_daniel/docker-data/${MY_WEB_APP}:/etc/nginx/conf.d \
-                -v /root/_daniel/docker-data/${MY_WEB_APP}-www:/usr/share/nginx/html \
+                -v /root/_daniel/docker-data/${MY_WEB_APP_CONF}:/etc/nginx/conf.d \
+                -v /root/_daniel/docker-data/${MY_WEB_APP_DATA}/www:/usr/share/nginx/html \
                 --network=${MY_ENV_NETWORK} --name ${MY_WEB_APP_CTNR} --restart always \
                 ${MY_WEB_APP}
             EOF
