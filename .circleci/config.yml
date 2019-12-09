@@ -123,20 +123,6 @@ jobs:
                     client_body_buffer_size 128k;
                 }
             }' > /root/_daniel/${MY_WEB_APP}/npm.dlei.ca.conf"
-            # ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
-            #   "echo 'server {
-            #     listen 80;
-            #     listen [::]:80;
-            #     server_name api2.dlei.ca;
-            #     location / {
-            #         proxy_pass        http://a-springboot-service-container:8080;
-            #         proxy_redirect    off;
-            #         proxy_set_header  Host \$host;
-            #         proxy_set_header  X-Real-IP \$remote_addr;
-            #         proxy_set_header  X-Forwarded-For \$proxy_add_x_forwarded_for;
-            #         proxy_set_header  X-Forwarded-Host \$server_name;
-            #     }
-            # }' > /root/_daniel/${MY_WEB_APP}/api2.dlei.ca.conf"
 
             # scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             #   -r ./Dockerfile root@${REMOTE_SERVER}:/root/_daniel/${MY_WEB_APP}
@@ -144,7 +130,7 @@ jobs:
           name: Deploy NGINX Docker Over SSH
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${REMOTE_SERVER} -l root \
-              "echo 'FROM nginx:1.17.2-alpine
+              "echo 'FROM nginx:1.17.6-alpine
 
             # Add Maintainer Info
             MAINTAINER Daniel Lei <dleibox@gmail.com>
@@ -157,7 +143,7 @@ jobs:
 
             EXPOSE 80 443
 
-            ADD ./*.conf /etc/nginx/conf.d/
+            # ADD ./*.conf /etc/nginx/conf.d/
 
             CMD [\"nginx\", \"-g\", \"daemon off;\"]
             ' > /root/_daniel/${MY_WEB_APP}/Dockerfile"
